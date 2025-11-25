@@ -8,6 +8,7 @@
 #include "io/BufferedOutputStream.hxx"
 #include "fs/AllocatedPath.hxx"
 #include "event/Loop.hxx"
+#include "config/Data.hxx" // Added for ConfigData definition
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -195,11 +196,11 @@ static unsigned g_audio_output_version = 1000;
 static std::vector<std::string> g_saved_output_states;
 static std::vector<std::string> g_saved_playlist_states;
 
-unsigned audio_output_state_get_version() noexcept {
+static unsigned audio_output_state_get_version() noexcept {
 	return g_audio_output_version;
 }
 
-void audio_output_state_save(MockBufferedOutputStream &os,
+static void audio_output_state_save(MockBufferedOutputStream &os,
                               const MockMultipleOutputs &outputs) {
 	for (const auto &state : outputs.GetOutputStates()) {
 		os.buffer << state << "\n";
@@ -207,7 +208,7 @@ void audio_output_state_save(MockBufferedOutputStream &os,
 	g_saved_output_states = outputs.GetOutputStates();
 }
 
-bool audio_output_state_read(const char *line,
+static bool audio_output_state_read(const char *line,
                               [[maybe_unused]] MockMultipleOutputs &outputs,
                               [[maybe_unused]] void *partition) {
 	if (std::strncmp(line, "audio_device_state:", 19) == 0) {
@@ -218,7 +219,7 @@ bool audio_output_state_read(const char *line,
 	return false;
 }
 
-void playlist_state_save(MockBufferedOutputStream &os,
+static void playlist_state_save(MockBufferedOutputStream &os,
                          const MockPlaylist &playlist,
                          [[maybe_unused]] const MockPlayerControl &pc) {
 	os.buffer << "state: stop\n";
@@ -229,12 +230,12 @@ void playlist_state_save(MockBufferedOutputStream &os,
 	os.buffer << "playlist_end\n";
 }
 
-unsigned playlist_state_get_hash(const MockPlaylist &playlist,
+static unsigned playlist_state_get_hash(const MockPlaylist &playlist,
                                  [[maybe_unused]] const MockPlayerControl &pc) noexcept {
 	return playlist.GetHash();
 }
 
-bool playlist_state_restore([[maybe_unused]] const StateFileConfig &config,
+static bool playlist_state_restore([[maybe_unused]] const StateFileConfig &config,
                            const char *line,
                            [[maybe_unused]] MockFileLineReader &file,
                            [[maybe_unused]] const void *song_loader,
@@ -255,16 +256,16 @@ bool playlist_state_restore([[maybe_unused]] const StateFileConfig &config,
 #ifdef ENABLE_DATABASE
 static unsigned g_storage_version = 2000;
 
-unsigned storage_state_get_hash([[maybe_unused]] const void *instance) noexcept {
+[[maybe_unused]] static unsigned storage_state_get_hash([[maybe_unused]] const void *instance) noexcept {
 	return g_storage_version;
 }
 
-void storage_state_save(MockBufferedOutputStream &os,
+[[maybe_unused]] static void storage_state_save(MockBufferedOutputStream &os,
                         [[maybe_unused]] const void *instance) {
 	os.buffer << "storage: mock_storage\n";
 }
 
-bool storage_state_restore(const char *line,
+[[maybe_unused]] static bool storage_state_restore(const char *line,
                           [[maybe_unused]] MockFileLineReader &file,
                           [[maybe_unused]] void *instance) {
 	if (std::strncmp(line, "storage:", 8) == 0) {
@@ -331,6 +332,11 @@ protected:
 	EventLoop event_loop;
 	MockPartition *default_partition;
 
+	// Minimal mock ConfigData for testing
+	struct TestConfigData : public ConfigData {
+		TestConfigData() = default;
+	};
+
 	void SetUp() override {
 		// Reset global state
 		g_audio_output_version = 1000;
@@ -353,7 +359,8 @@ protected:
 	 * Helper to create a StateFileConfig for testing
 	 */
 	StateFileConfig CreateTestConfig(const char *path_str = "/tmp/test_state") const {
-		StateFileConfig config;
+		TestConfigData test_config_data;
+		StateFileConfig config(test_config_data);
 		config.path = AllocatedPath::FromFS(path_str);
 		config.interval = std::chrono::seconds(120);
 		config.restore_paused = false;
@@ -697,13 +704,4 @@ TEST_F(StateFileTest, IsModifiedDetectsOutputChange) {
 
 	// Should be modified
 	EXPECT_NE(initial_output_version, new_output_version);
-}
-
-// =============================================================================
-// Main
-// =============================================================================
-
-int main(int argc, char **argv) {
-	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
 }

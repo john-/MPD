@@ -1,6 +1,7 @@
 gtest_dep = dependency('gtest', main: true,
                        include_type: 'system',
                        fallback: ['gtest', 'gtest_main_dep'])
+gmock_dep = dependency('gmock', main: true, fallback: ['gtest', 'gmock_dep'])
 
 subdir('util')
 subdir('net')
@@ -519,6 +520,25 @@ test(
     dependencies: [
       pcm_dep,
       gtest_dep,
+    ],
+  ),
+  protocol: 'gtest',
+)
+
+test(
+  'test_state',
+  executable(
+    'test_state',
+    'test_state.cxx',
+    '../src/StateFileConfig.cxx',
+    include_directories: inc,
+    dependencies: [
+      gtest_dep,
+      gmock_dep,
+      event_dep,
+      config_dep,
+      fs_dep,
+      util_dep,
     ],
   ),
   protocol: 'gtest',
