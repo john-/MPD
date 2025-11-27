@@ -626,12 +626,3 @@ TEST_F(StateFileIntegrationTest, DISABLED_RoundTripMultiplePartitions) {
 	ASSERT_NE(partition2, nullptr);
 	EXPECT_EQ(partition2->mixer_memento.GetVolume(partition2->outputs), 20);
 }
-
-// =============================================================================
-// Main
-// =============================================================================
-
-int main(int argc, char **argv) {
-	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
-}
