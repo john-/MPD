@@ -525,25 +525,6 @@ test(
   protocol: 'gtest',
 )
 
-test(
-  'test_state',
-  executable(
-    'test_state',
-    'test_state.cxx',
-    '../src/StateFileConfig.cxx',
-    include_directories: inc,
-    dependencies: [
-      gtest_dep,
-      gmock_dep,
-      event_dep,
-      config_dep,
-      fs_dep,
-      util_dep,
-    ],
-  ),
-  protocol: 'gtest',
-)
-
 executable(
   'run_filter',
   'run_filter.cxx',
@@ -681,6 +662,41 @@ test(
       net_dep,
       encoder_glue_dep,
       gtest_dep,
+    ],
+  ),
+  protocol: 'gtest',
+)
+
+
+test(
+  'test_state',
+  executable(
+    'test_state',
+    'test_state.cxx',
+    '../src/StateFileConfig.cxx',
+    include_directories: inc,
+    dependencies: [
+      gtest_dep,
+      gmock_dep,
+      event_dep,
+      config_dep,
+      fs_dep,
+      util_dep,
+    ],
+  ),
+  protocol: 'gtest',
+)
+
+
+test(
+  'TestStateFile',
+  executable(
+    'TestStateFile',
+    'TestStateFile.cxx',
+    include_directories: inc,
+    dependencies: [
+      gtest_dep,
+      gmock_dep,
     ],
   ),
   protocol: 'gtest',
