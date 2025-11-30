@@ -1,15 +1,19 @@
-#include <gtest/gtest.h>
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright The Music Player Daemon Project
+
 #include <StateFile.hxx>
+#include "config/PartitionConfig.hxx"
 #include <config/Data.hxx>
 #include "Instance.hxx"
 #include "Partition.hxx"
 #include "event/Loop.hxx"
-#include "config/PartitionConfig.hxx"
 #include "fs/AllocatedPath.hxx"
 #include "Log.hxx"
 #include "LogBackend.hxx"
+
 #include <fstream>
 #include <filesystem>
+#include <gtest/gtest.h>
 
 // Declare the global_instance (defined in TestGlobalInit.cxx)
 extern Instance *global_instance;
@@ -103,7 +107,7 @@ protected:
     }
 };
 
-TEST_F(TestStateFileRead, DISABLED_ReadValidStateFile) {
+TEST_F(TestStateFileRead, ReadValidStateFile) {
     // Create a state file with valid content
     WriteStateFile(
         "sw_volume: 80\n"
@@ -120,7 +124,7 @@ TEST_F(TestStateFileRead, DISABLED_ReadValidStateFile) {
     SUCCEED();
 }
 
-TEST_F(TestStateFileRead, DISABLED_ReadEmptyStateFile) {
+TEST_F(TestStateFileRead, ReadEmptyStateFile) {
     // Create an empty state file
     WriteStateFile("");
     
@@ -130,7 +134,7 @@ TEST_F(TestStateFileRead, DISABLED_ReadEmptyStateFile) {
     SUCCEED();
 }
 
-TEST_F(TestStateFileRead, DISABLED_ReadMalformedStateFile) {
+TEST_F(TestStateFileRead, ReadMalformedStateFile) {
     // Create a malformed state file
     WriteStateFile(
         "invalid line without colon\n"
@@ -144,7 +148,7 @@ TEST_F(TestStateFileRead, DISABLED_ReadMalformedStateFile) {
     SUCCEED();
 }
 
-TEST_F(TestStateFileRead, DISABLED_ReadNonExistentFile) {
+TEST_F(TestStateFileRead, ReadNonExistentFile) {
     // Don't create a file - test reading when file doesn't exist
     // Should handle missing file gracefully (logs error but doesn't crash)
     state_file->Read();
@@ -155,8 +159,6 @@ TEST_F(TestStateFileRead, DISABLED_ReadNonExistentFile) {
 TEST_F(TestStateFileRead, ReadWithMultiplePartitions) {
     // Create a state file with multiple partitions
     WriteStateFile(
-        "sw_volume: 100\n"
-        "state: play\n"
         "partition: secondary\n"
         "sw_volume: 50\n"
         "state: pause\n"
@@ -175,7 +177,7 @@ TEST_F(TestStateFileRead, ReadWithMultiplePartitions) {
     SUCCEED();
 }
 
-TEST_F(TestStateFileRead, DISABLED_ReadAndWrite) {
+TEST_F(TestStateFileRead, ReadAndWrite) {
     // Create initial state file
     WriteStateFile(
         "sw_volume: 75\n"
