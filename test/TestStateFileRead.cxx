@@ -6,6 +6,8 @@
 #include "Instance.hxx"
 #include "Partition.hxx"
 #include "config/Data.hxx"
+#include "config/Block.hxx"
+#include "config/Option.hxx"
 #include "config/PartitionConfig.hxx"
 #include "event/Loop.hxx"
 #include "fs/AllocatedPath.hxx"
@@ -76,8 +78,16 @@ protected:
 		// Generate unique temporary file path
 		temp_state_file = GenerateTempFilePath();
 
-		// Create empty configuration
+		// Create configuration with audio output
 		ConfigData config_data;
+		
+		// Add null audio output for testing
+		ConfigBlock audio_output_block;
+		audio_output_block.AddBlockParam("type", "null");
+		audio_output_block.AddBlockParam("name", "MyTestOutput");
+		audio_output_block.AddBlockParam("mixer_type", "null");
+		config_data.AddBlock(ConfigBlockOption::AUDIO_OUTPUT, 
+		                     std::move(audio_output_block));
 
 		// Create partition and add to instance
 		PartitionConfig partition_config{config_data};
@@ -216,6 +226,23 @@ TEST_F(TestStateFileRead, ReadValidStateFile) {
 
 	// Verify Read() completed successfully
 	SUCCEED();
+}
+
+/**
+ * Test that audio output configuration was properly loaded.
+ * This verifies the ConfigBlock setup in SetUp() is working correctly.
+ */
+TEST_F(TestStateFileRead, AudioOutputLoadedFromConfig) {
+	// Get the partition
+	Partition &partition = GetPartition();
+
+	// Verify exactly one audio output was configured
+	ASSERT_EQ(partition.outputs.Size(), 1);
+
+	// Get the output and verify its properties
+	const auto &output = partition.outputs.Get(0);
+	EXPECT_EQ(output.GetName(), "MyTestOutput");
+	EXPECT_STREQ(output.GetPluginName(), "null");
 }
 
 /**
