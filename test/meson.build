@@ -672,7 +672,7 @@ test(
   'test_state',
   executable(
     'test_state',
-    'test_state.cxx',
+    'test_state_do-not-use.cxx',
     '../src/StateFileConfig.cxx',
     include_directories: inc,
     dependencies: [
@@ -687,47 +687,16 @@ test(
   protocol: 'gtest',
 )
 
-
 test(
   'TestStateFile',
   executable(
     'TestStateFile',
     'TestStateFile.cxx',
-    '../src/Partition.cxx',
-    '../src/Instance.cxx',
-    '../src/config/Data.cxx',
-    '../src/StateFileConfig.cxx',
-    '../src/fs/AllocatedPath.cxx',
-    '../src/StateFile.cxx',
-    '../src/mixer/Memento.cxx',
-    '../src/player/Control.cxx',
-    '../src/queue/Playlist.cxx',
-    '../src/SongLoader.cxx',
-    '../src/config/PartitionConfig.cxx',
-    '../src/io/BufferedOutputStream.cxx',
-    '../src/queue/Queue.cxx',
-    '../src/client/Client.cxx',
-    '../src/client/Listener.cxx',
-    '../src/queue/PlaylistEdit.cxx',
-    '../src/db/PlaylistVector.cxx',
+    'TestGlobalInit.cxx',  # Add this file to provide global_instance
     include_directories: inc,
     dependencies: [
+      mpd_lib_dep,  # This provides all the MPD code your test needs
       gtest_dep,
-      gmock_dep,
-      event_dep,
-      config_dep,
-      fs_dep,
-      util_dep,
-      log_dep,
-      playlist_glue_dep,
-      song_dep,
-      mixer_glue_dep,
-      output_glue_dep,
-      tag_dep,
-      pcm_dep,
-      io_dep,
-      input_glue_dep,
-      db_glue_dep,
     ],
   ),
   protocol: 'gtest',
