@@ -701,3 +701,18 @@ test(
   ),
   protocol: 'gtest',
 )
+
+test(
+  'TestStateFileRead',
+  executable(
+    'TestStateFileRead',
+    'TestStateFileRead.cxx',
+    'TestGlobalInit.cxx',
+    include_directories: inc,
+    dependencies: [
+      mpd_lib_dep,
+      gtest_dep,
+    ],
+  ),
+  protocol: 'gtest',
+)
