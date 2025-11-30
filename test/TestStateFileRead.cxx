@@ -157,7 +157,6 @@ TEST_F(TestStateFileRead, ReadWithMultiplePartitions) {
     WriteStateFile(
         "sw_volume: 100\n"
         "state: play\n"
-        "consume: 1\n"
         "partition: secondary\n"
         "sw_volume: 50\n"
         "state: pause\n"
