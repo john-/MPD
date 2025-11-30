@@ -9,6 +9,7 @@
 #include "config/Block.hxx"
 #include "config/Option.hxx"
 #include "config/PartitionConfig.hxx"
+#include "config/ReplayGainConfig.hxx"
 #include "event/Loop.hxx"
 #include "fs/AllocatedPath.hxx"
 #include "fs/FileSystem.hxx"
@@ -82,10 +83,11 @@ protected:
 		ConfigData config_data;
 		
 		// Add null audio output for testing
-		ConfigBlock audio_output_block;
-		audio_output_block.AddBlockParam("type", "null");
-		audio_output_block.AddBlockParam("name", "MyTestOutput");
-		audio_output_block.AddBlockParam("mixer_type", "null");
+		// Use line number 1 to indicate this is a "real" config block, not synthetic
+		ConfigBlock audio_output_block{1};
+		audio_output_block.AddBlockParam("type", "null", 1);
+		audio_output_block.AddBlockParam("name", "MyTestOutput", 2);
+		audio_output_block.AddBlockParam("mixer_type", "null", 3);
 		config_data.AddBlock(ConfigBlockOption::AUDIO_OUTPUT, 
 		                     std::move(audio_output_block));
 
@@ -97,12 +99,28 @@ protected:
 			partition_config
 		);
 
+		// Get reference to the partition
+		Partition &test_partition = instance->partitions.front();
+		
+		// Configure outputs from config data
+		// Note: ReplayGainConfig needs to be created
+		ReplayGainConfig replay_gain_config;
+		replay_gain_config.preamp = 1.0;
+		replay_gain_config.missing_preamp = 1.0;
+		replay_gain_config.limit = true;
+		
+		test_partition.outputs.Configure(
+			instance->event_loop,
+			instance->rtio_thread.GetEventLoop(),
+			config_data,
+			replay_gain_config
+		);
+
 		// Create StateFile configuration with our temporary file
 		StateFileConfig state_config{config_data};
 		state_config.path = temp_state_file;
 
 		// Create the StateFile for testing
-		Partition &test_partition = instance->partitions.front();
 		state_file = std::make_unique<StateFile>(
 			std::move(state_config),
 			test_partition,
