@@ -165,33 +165,13 @@ protected:
 		const auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
 			now.time_since_epoch()
 		).count();
-
-#ifdef _WIN32
-		// Windows: use TEMP environment variable
-		const char *temp_dir = std::getenv("TEMP");
-		if (temp_dir == nullptr || temp_dir[0] == '\0') {
-			temp_dir = std::getenv("TMP");
-		}
-		if (temp_dir == nullptr || temp_dir[0] == '\0') {
-			temp_dir = "C:\\Temp";
-		}
-#else
-		// Unix: use TMPDIR or fall back to /var/tmp
-		const char *temp_dir = std::getenv("TMPDIR");
-		if (temp_dir == nullptr || temp_dir[0] == '\0') {
-			temp_dir = "/var/tmp";
-		}
-#endif
+		const std::string temp_dir = testing::TempDir();
 
 		// Construct unique filename: mpd_test_state_<timestamp>_<pid>.txt
 		const auto base_path = AllocatedPath::FromFS(temp_dir);
 		
-#ifdef _WIN32
-		const auto filename = fmt::format("mpd_test_state_{}.txt", timestamp);
-#else
 		const auto filename = fmt::format("mpd_test_state_{}_{}.txt", 
-		                                  timestamp, ::getpid());
-#endif
+		                                  timestamp, getpid());
 
 		return AllocatedPath::Build(base_path, 
 		                            AllocatedPath::FromFS(filename.c_str()));
