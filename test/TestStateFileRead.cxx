@@ -169,7 +169,6 @@ protected:
 		const auto bytes = std::as_bytes(std::span{content});
 		file.Write(bytes);
 		
-		// Commit the file
 		file.Commit();
 	}
 
