@@ -26,10 +26,6 @@
 #include <string_view>
 #include <span>
 
-#ifndef _WIN32
-#include <unistd.h>
-#endif
-
 // Declare the global_instance (defined in TestGlobalInit.cxx)
 extern Instance *global_instance;
 
