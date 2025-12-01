@@ -652,7 +652,7 @@ test(
   executable(
     'TestStateFile',
     'TestStateFile.cxx',
-    'TestGlobalInit.cxx',
+    'SetupGlobalInit.cxx',
     include_directories: inc,
     dependencies: [
       mpd_lib_dep,
