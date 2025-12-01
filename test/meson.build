@@ -648,10 +648,10 @@ endif
 subdir('fs')
 
 test(
-  'TestStateFileRead',
+  'TestStateFile',
   executable(
-    'TestStateFileRead',
-    'TestStateFileRead.cxx',
+    'TestStateFile',
+    'TestStateFile.cxx',
     'TestGlobalInit.cxx',
     include_directories: inc,
     dependencies: [
