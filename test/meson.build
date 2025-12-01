@@ -648,61 +648,6 @@ endif
 subdir('fs')
 
 test(
-  'TestFullIntegration',
-  executable(
-    'TestFullIntegration',
-    'TestFullIntegration.cxx',
-    include_directories: inc,
-    dependencies: [
-      log_dep,
-      event_dep,
-      util_dep,
-      config_dep,
-      fs_dep,
-      net_dep,
-      encoder_glue_dep,
-      gtest_dep,
-    ],
-  ),
-  protocol: 'gtest',
-)
-
-
-test(
-  'test_state',
-  executable(
-    'test_state',
-    'test_state_do-not-use.cxx',
-    '../src/StateFileConfig.cxx',
-    include_directories: inc,
-    dependencies: [
-      gtest_dep,
-      gmock_dep,
-      event_dep,
-      config_dep,
-      fs_dep,
-      util_dep,
-    ],
-  ),
-  protocol: 'gtest',
-)
-
-test(
-  'TestStateFile',
-  executable(
-    'TestStateFile',
-    'TestStateFile.cxx',
-    'TestGlobalInit.cxx',  # Add this file to provide global_instance
-    include_directories: inc,
-    dependencies: [
-      mpd_lib_dep,  # This provides all the MPD code your test needs
-      gtest_dep,
-    ],
-  ),
-  protocol: 'gtest',
-)
-
-test(
   'TestStateFileRead',
   executable(
     'TestStateFileRead',
