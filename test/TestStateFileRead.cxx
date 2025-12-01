@@ -82,7 +82,7 @@ protected:
 		);
 
 		// Get reference to the partition
-		Partition &test_partition = instance->partitions.front();
+		Partition &default_partition = instance->partitions.front();
 		
 		// Configure outputs from config data
 		// Note: ReplayGainConfig needs to be created
@@ -91,7 +91,7 @@ protected:
 		replay_gain_config.missing_preamp = 1.0;
 		replay_gain_config.limit = true;
 		
-		test_partition.outputs.Configure(
+		default_partition.outputs.Configure(
 			instance->event_loop,
 			instance->rtio_thread.GetEventLoop(),
 			config_data,
@@ -105,7 +105,7 @@ protected:
 		// Create the StateFile for testing
 		state_file = std::make_unique<StateFile>(
 			std::move(state_config),
-			test_partition,
+			default_partition,
 			instance->event_loop
 		);
 	}
