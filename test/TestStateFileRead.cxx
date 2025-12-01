@@ -14,6 +14,7 @@
 #include "fs/AllocatedPath.hxx"
 #include "fs/FileSystem.hxx"
 #include "io/FileOutputStream.hxx"
+#include "io/FileLineReader.hxx"
 #include "Log.hxx"
 #include "LogBackend.hxx"
 
@@ -21,6 +22,7 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <string>
 #include <string_view>
 #include <span>
 
@@ -225,6 +227,154 @@ protected:
 		assert(partition != nullptr);
 		return *partition;
 	}
+
+	/**
+	 * Check if the state file contains a specific key-value entry
+	 * for a given partition.
+	 *
+	 * This function reads the temporary state file and searches for
+	 * a matching entry within the specified partition's section.
+	 *
+	 * @param partition_name Name of the partition ("default" for the first/unlabeled partition)
+	 * @param key The state key to search for (e.g., "sw_volume", "state")
+	 * @param expected_value The expected value for the key
+	 * @return true if the entry exists with the expected value, false otherwise
+	 */
+	[[nodiscard]]
+	bool StateFileHasEntry(std::string_view partition_name,
+	                       std::string_view key,
+	                       std::string_view expected_value) const {
+		// Check if state file exists
+		if (!FileExists(temp_state_file)) {
+			return false;
+		}
+
+		try {
+			// Open and read the state file
+			FileLineReader reader{temp_state_file};
+			
+			// Track current partition (start with "default")
+			std::string current_partition = "default";
+			
+			// Search key with colon separator
+			const auto search_key = std::string{key} + ":";
+			
+			// Read file line by line
+			const char *line;
+			while ((line = reader.ReadLine()) != nullptr) {
+				const std::string_view line_view{line};
+				
+				// Check for partition switch
+				if (line_view.starts_with("partition: ")) {
+					// Extract partition name after "partition: "
+					current_partition = line_view.substr(11);
+					continue;
+				}
+				
+				// Skip if we're not in the target partition
+				if (current_partition != partition_name) {
+					continue;
+				}
+				
+				// Check if line matches our key
+				if (!line_view.starts_with(search_key)) {
+					continue;
+				}
+				
+				// Extract value (everything after "key: ")
+				const auto value_start = search_key.length();
+				if (value_start < line_view.length()) {
+					const auto value = line_view.substr(value_start);
+					
+					// Trim leading whitespace from value
+					auto value_trimmed = value;
+					while (!value_trimmed.empty() && value_trimmed.front() == ' ') {
+						value_trimmed.remove_prefix(1);
+					}
+					
+					if (value_trimmed == expected_value) {
+						return true;
+					}
+				}
+			}
+			
+			return false;
+		} catch (...) {
+			// File read error - entry not found
+			return false;
+		}
+	}
+
+	/**
+	 * Get the value of a state file entry for a specific partition.
+	 *
+	 * This function reads the temporary state file and returns the value
+	 * associated with the given key in the specified partition's section.
+	 *
+	 * @param partition_name Name of the partition ("default" for the first/unlabeled partition)
+	 * @param key The state key to search for (e.g., "sw_volume", "state")
+	 * @return The value if found, empty string if not found or on error
+	 */
+	[[nodiscard]]
+	std::string GetStateFileEntry(std::string_view partition_name,
+	                              std::string_view key) const {
+		// Check if state file exists
+		if (!FileExists(temp_state_file)) {
+			return {};
+		}
+
+		try {
+			// Open and read the state file
+			FileLineReader reader{temp_state_file};
+			
+			// Track current partition (start with "default")
+			std::string current_partition = "default";
+			
+			// Search key with colon separator
+			const auto search_key = std::string{key} + ":";
+			
+			// Read file line by line
+			const char *line;
+			while ((line = reader.ReadLine()) != nullptr) {
+				const std::string_view line_view{line};
+				
+				// Check for partition switch
+				if (line_view.starts_with("partition: ")) {
+					// Extract partition name after "partition: "
+					current_partition = line_view.substr(11);
+					continue;
+				}
+				
+				// Skip if we're not in the target partition
+				if (current_partition != partition_name) {
+					continue;
+				}
+				
+				// Check if line matches our key
+				if (!line_view.starts_with(search_key)) {
+					continue;
+				}
+				
+				// Extract value (everything after "key: ")
+				const auto value_start = search_key.length();
+				if (value_start < line_view.length()) {
+					auto value = line_view.substr(value_start);
+					
+					// Trim leading whitespace from value
+					while (!value.empty() && value.front() == ' ') {
+						value.remove_prefix(1);
+					}
+					
+					return std::string{value};
+				}
+			}
+			
+			return {};
+		} catch (...) {
+			// File read error
+			return {};
+		}
+	}
 };
 
 /**
@@ -348,9 +498,46 @@ TEST_F(TestStateFileRead, ReadAndWrite) {
 	// Verify the file still exists and is non-empty
 	ASSERT_TRUE(FileExists(temp_state_file));
 
-	// Note: We could read the file again and verify content matches,
-	// but that would require parsing logic. For now, just verify
-	// the write completed successfully.
+	// Validate specific entries were written
+	EXPECT_TRUE(StateFileHasEntry("default", "state", "stop"));
+	EXPECT_TRUE(StateFileHasEntry("default", "audio_device_state:1", "MyTestOutput"));
+}
+
+/**
+ * Test state file entry validation functions.
+ * This verifies the helper functions can correctly parse state file contents.
+ */
+TEST_F(TestStateFileRead, ValidateStateFileEntries) {
+	// Write a known state file
+	WriteStateFile(
+		"sw_volume: 80\n"
+		"state: pause\n"
+		"random: 1\n"
+		"repeat: 0\n"
+		"partition: secondary\n"
+		"sw_volume: 50\n"
+		"state: play\n"
+	);
+
+	// Validate entries in default partition
+	EXPECT_TRUE(StateFileHasEntry("default", "sw_volume", "80"));
+	EXPECT_TRUE(StateFileHasEntry("default", "state", "pause"));
+	EXPECT_TRUE(StateFileHasEntry("default", "random", "1"));
+	EXPECT_TRUE(StateFileHasEntry("default", "repeat", "0"));
+	
+	// Validate entries in secondary partition
+	EXPECT_TRUE(StateFileHasEntry("secondary", "sw_volume", "50"));
+	EXPECT_TRUE(StateFileHasEntry("secondary", "state", "play"));
+	
+	// Verify wrong values return false
+	EXPECT_FALSE(StateFileHasEntry("default", "sw_volume", "100"));
+	EXPECT_FALSE(StateFileHasEntry("secondary", "random", "1"));
+	
+	// Test GetStateFileEntry
+	EXPECT_EQ(GetStateFileEntry("default", "sw_volume"), "80");
+	EXPECT_EQ(GetStateFileEntry("default", "state"), "pause");
+	EXPECT_EQ(GetStateFileEntry("secondary", "sw_volume"), "50");
+	EXPECT_EQ(GetStateFileEntry("default", "nonexistent"), "");
 }
 
 /**
