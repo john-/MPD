@@ -2,16 +2,10 @@
 // Copyright The Music Player Daemon Project
 
 #include "StateFile.hxx"
-#include "StateFileConfig.hxx"
 #include "Instance.hxx"
 #include "Partition.hxx"
 #include "config/Data.hxx"
-#include "config/Block.hxx"
-#include "config/Option.hxx"
 #include "config/PartitionConfig.hxx"
-#include "config/ReplayGainConfig.hxx"
-#include "event/Loop.hxx"
-#include "fs/AllocatedPath.hxx"
 #include "fs/FileSystem.hxx"
 #include "io/FileOutputStream.hxx"
 #include "io/FileLineReader.hxx"
@@ -19,12 +13,6 @@
 #include "LogBackend.hxx"
 
 #include <gtest/gtest.h>
-
-#include <chrono>
-#include <cstdlib>
-#include <string>
-#include <string_view>
-#include <span>
 
 // Declare the global_instance (defined in TestGlobalInit.cxx)
 extern Instance *global_instance;
