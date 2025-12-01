@@ -34,10 +34,6 @@ public:
 	}
 };
 
-// Register the global test environment
-[[maybe_unused]] static ::testing::Environment *const test_env =
-	::testing::AddGlobalTestEnvironment(new TestEnvironment());
-
 /**
  * Test fixture for StateFile read/write operations.
  * 
