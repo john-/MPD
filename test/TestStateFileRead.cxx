@@ -147,10 +147,9 @@ protected:
 		).count();
 		const std::string temp_dir = testing::TempDir();
 
-		// Construct unique filename: mpd_test_state_<timestamp>_<pid>.txt
 		const auto base_path = AllocatedPath::FromFS(temp_dir);
 		
-		const auto filename = fmt::format("mpd_test_state_{}_{}.txt", 
+		const auto filename = fmt::format("state_{}_{}", 
 		                                  timestamp, getpid());
 
 		return AllocatedPath::Build(base_path, 
