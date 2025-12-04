@@ -587,6 +587,82 @@ if is_windows
   sources += windows_resources
 endif
 
+
+mpd_lib_sources = []
+foreach src : sources
+  # Exclude main entry points - tests and the executable will link separately
+  # Only check string sources (version_cxx is a custom target, not a string)
+  src_str = '@0@'.format(src)
+  if not src_str.contains('Main.cxx') and not src_str.contains('Win32Main.cxx')
+    mpd_lib_sources += src
+  endif
+endforeach
+
+mpd_lib = static_library(
+  'mpd_lib',
+  mpd_lib_sources,
+  include_directories: inc,
+  dependencies: [
+    cmdline_dep,
+    basic_dep,
+    config_dep,
+    dbus_dep,
+    fs_dep,
+    net_dep,
+    util_dep,
+    event_dep,
+    thread_dep,
+    neighbor_glue_dep,
+    input_glue_dep,
+    archive_glue_dep,
+    output_glue_dep,
+    mixer_glue_dep,
+    decoder_glue_dep,
+    encoder_glue_dep,
+    playlist_glue_dep,
+    db_glue_dep,
+    storage_glue_dep,
+    song_dep,
+    systemd_dep,
+    sqlite_dep,
+    zeroconf_dep,
+    chromaprint_dep,
+    fmt_dep,
+  ],
+)
+
+mpd_lib_dep = declare_dependency(
+  link_with: mpd_lib,
+  dependencies: [
+    cmdline_dep,
+    basic_dep,
+    config_dep,
+    dbus_dep,
+    fs_dep,
+    net_dep,
+    util_dep,
+    event_dep,
+    thread_dep,
+    neighbor_glue_dep,
+    input_glue_dep,
+    archive_glue_dep,
+    output_glue_dep,
+    mixer_glue_dep,
+    decoder_glue_dep,
+    encoder_glue_dep,
+    playlist_glue_dep,
+    db_glue_dep,
+    storage_glue_dep,
+    song_dep,
+    systemd_dep,
+    sqlite_dep,
+    zeroconf_dep,
+    chromaprint_dep,
+    fmt_dep,
+  ],
+)
+
+
 link_args = []
 more_deps = []
 if is_android

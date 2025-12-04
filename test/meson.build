@@ -645,3 +645,22 @@ if alsa_dep.found()
 endif
 
 subdir('fs')
+
+#
+# StateFile
+#
+
+test(
+  'TestStateFile',
+  executable(
+    'TestStateFile',
+    'TestStateFile.cxx',
+    'MockPlaylistSong.cxx',
+    include_directories: inc,
+    dependencies: [
+      gtest_dep,
+      mpd_lib_dep,  # mpd_lib comes AFTER MockSave
+    ],
+  ),
+  protocol: 'gtest',
+)
